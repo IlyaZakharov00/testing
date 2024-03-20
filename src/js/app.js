@@ -2,6 +2,7 @@ export class NumberCard {
   constructor(number, parentEL) {
     this.numberCard = number;
     this.controlNumber = null;
+    this.checkNumber = false;
     this.paymentSystem = undefined;
     this.validate = false;
     this.parentEL = parentEL;
@@ -37,11 +38,7 @@ export class NumberCard {
   }
 
   findContorlNum(number) {
-    if (!number.match(/^\d+$/) || number.length < 13) {
-      this.numberCard = document.getElementById("card_number").value = ""; // очищаем инпут
-      return false;
-      throw new Error("Ошибка в номере карты! Пожалуйста, повторите ещё раз."); // выполняем проверку регулярным выражением. возвращаем алерт
-    }
+    if (number.match(/\D{1,}/)) return false; //если пользователь ввел что угодно кроме цифр
 
     let nmbRvrsArray = String(number).split("").reverse(); // создаем массив из перевернутого значения number и удаляем первый элемент
     let arrForSum = [];
@@ -67,25 +64,14 @@ export class NumberCard {
     }, 0);
 
     this.controlNumber = (10 - (sumArrForSum % 10)) % 10; // ищем контрольную цифру
-    console.log("Вычисленная контрольная цифра: " + this.controlNumber);
-    return this.controlNumber;
+    return true;
   }
 
   checkContorlNumber(number) {
     let lastNumber = Number(String(number[number.length - 1]));
     if (this.controlNumber == lastNumber) {
-      console.log(
-        "Последняя цифра: " +
-          lastNumber +
-          ". Вычисленная контрольная цифра " +
-          this.controlNumber +
-          "."
-      );
-      return true;
-    } else {
-      alert("Такой карты не существует!");
-      return;
-    }
+      return (this.checkNumber = true);
+    } else return (this.checkNumber = false);
   }
 
   findPaymentSystem(number) {
@@ -141,15 +127,10 @@ export class NumberCard {
     if (number.match(/^2\d{1,}/)) {
       this.paymentSystem = "mir"; // проверка на mir
     }
-
+    console.log("дошли до платежной системы");
     if (this.paymentSystem == undefined) {
-      console.log("Платежная система карты неизвестна");
-      alert("Платежная система карты неизвестна");
-      return; // если неизвестна платежная система то показываем сообщение и return
-    } else {
-      console.log("Платежная система карты " + this.paymentSystem);
-      return this.paymentSystem; // если платежная система известна - возвращаем ее
-    }
+      return false; // если неизвестна платежная система то показываем сообщение и return
+    } else return this.paymentSystem; // если платежная система известна - возвращаем ее
   }
 
   validateCard(number) {
@@ -158,11 +139,7 @@ export class NumberCard {
       this.checkContorlNumber(number) &&
       this.findPaymentSystem(number)
     ) {
-      const form = document.querySelector(".form-inline");
-      form.setAttribute("novalidate", "valid");
-      console.log(form.getAttribute("novalidate"));
-      console.log(form["novalidate"]);
       return (this.validate = true);
-    } else return false;
+    } else return (this.validate = false);
   }
 }
